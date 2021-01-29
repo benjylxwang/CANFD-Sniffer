@@ -165,7 +165,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         for i in range(1, 3):
             self.txTable.setItem(newRow, i, self.decodedMessagesTableWidget.item(decodedCurrentRow, i+1))
         newData = ""
-        for i in range(int(self.decodedMessagesTableWidget.item(decodedCurrentRow, 4).text())):
+        for i in range(int(self.decodedMessagesTableWidget.item(decodedCurrentRow, 4).text(), base=16)):
             newData += str(self.decodedMessagesTableWidget.item(decodedCurrentRow, 5 + i).text())
         self.txTable.setItem(newRow, 3, QTableWidgetItem(newData))
         self.txTable.selectRow(newRow)
@@ -469,7 +469,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
     def serialPortConnect(self):
         try:
             self.serialController.port = self.portSelectorComboBox.currentText()
-            self.serialController.baudrate = 250000
+            self.serialController.baudrate = 115200
             self.serialController.open()
             self.serialReaderThread.start()
             self.serialWriterThread.start()
