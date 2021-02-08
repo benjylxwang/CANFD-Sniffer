@@ -23,6 +23,7 @@ class SerialWriterThread(QThread):
         self.clearQueues()
 
     def write(self, packet):
+        print(packet)
         self.writerQ.put(packet)
 
     def setRepeatedWriteDelay(self, delay):

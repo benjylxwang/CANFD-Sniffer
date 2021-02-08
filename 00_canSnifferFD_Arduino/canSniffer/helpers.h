@@ -6,7 +6,7 @@
 
 // Settings
 // Choose between STANDALONE, FAKE_SERIAL, and CHECK_CONNECTION
-#define TEST_MODE FAKE_SERIAL
+#define TEST_MODE STANDALONE
 #define STANDALONE 1
 #define FAKE_SERIAL 2
 #define CHECK_CONNECTION 3

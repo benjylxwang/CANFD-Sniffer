@@ -16,6 +16,10 @@
 static const byte MCP2517_CS = 17; // CS input of MCP2517
 static const byte MCP2517_INT = 7; // INT output of MCP2517
 
+// FOR MIKROE 2517FD CLICK
+//static const byte MCP2517_CS = 10;  // CS input of MCP2517
+// static const byte MCP2517_INT = 2; // INT output of MCP2517
+
 #define CAN_SPEED (33E3) //LOW=33E3, MID=95E3, HIGH=500E3 (for Vectra)
 //------------------------------------------------------------------------------
 // Can controller class
@@ -41,8 +45,8 @@ void setup()
   Serial.println(" bytes");
   Serial.println("Configure ACAN2517FD");
 #endif
-
-  ACAN2517FDSettings settings(ACAN2517FDSettings::OSC_20MHz, 500UL * 1000UL, DataBitRateFactor::x1);
+  
+  ACAN2517FDSettings settings(ACAN2517FDSettings::OSC_20MHz, 500UL * 1000UL, DataBitRateFactor::x1); // 20 for Longan FD, 40 for Mikroe FD
 
   settings.mRequestedMode = ACAN2517FDSettings::NormalFD; // Select loopback mode
   //--- Default values are too high for an Arduino Uno that contains 2048 bytes of RAM: reduce them

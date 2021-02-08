@@ -69,6 +69,7 @@ void CANRead()
 
 void sendPacketToCan(CANFDMessage packet)
 {
+
     for (int retries = 10; retries > 0; retries--)
     {
         bool ok = can.tryToSend(packet);
@@ -139,30 +140,39 @@ char *parseType(char *str, CANFDMessage::Type *type)
 
 void rxParse(char *buf, int len)
 {
-    CANFDMessage rxPacket;
-    char *ptr = buf;
-    // All elements have to have leading zero!
-    // Input format: [ID],[EXT],[TYPE],[DATABYTES 0..64B]\n
+        CANFDMessage rxPacket;
+        char *ptr = buf;
+        // All elements have to have leading zero!
+        // Input format: [ID],[EXT],[TYPE],[DATABYTES 0..64B]\n
 
-    // ID
-    byte idTempArray[4], tempLen;
-    ptr = strToHex(ptr, idTempArray, &tempLen);
-    rxPacket.id = 0;
-    for (int i = 0; i < tempLen; i++)
-    {
-        rxPacket.id |= idTempArray[i] << ((tempLen - i - 1) * 8);
-    }
+        // ID
+        byte idTempArray[4], tempLen;
+        ptr = strToHex(ptr, idTempArray, &tempLen);
+        rxPacket.id = 0;
+        for (int i = 0; i < tempLen; i++)
+        {
+            rxPacket.id |= idTempArray[i] << ((tempLen - i - 1) * 8);
+        }
 
-    // EXT
-    byte ext;
-    ptr = strToHex(ptr + 1, &ext, &tempLen);
-    rxPacket.ext = ext ? true : false;
+        // EXT
+        byte ext;
+        ptr = strToHex(ptr + 1, &ext, &tempLen);
+        rxPacket.ext = ext ? true : false;
 
-    // TYPE
-    ptr = parseType(ptr + 1, &rxPacket.type);
+        // TYPE
+        ptr = parseType(ptr + 1, &rxPacket.type);
 
-    // DATA
-    ptr = strToHex(ptr + 1, rxPacket.data, &rxPacket.len);
+        // DATA
+        ptr = strToHex(ptr + 1, rxPacket.data, &rxPacket.len);
+
+        // DLC: read https://www.csselectronics.com/screen/page/can-fd-flexible-data-rate-intro/language/en
+        if (rxPacket.len > 8 && rxPacket.len < 13)
+        {
+            rxPacket.len = 8 + ((rxPacket.len - 8) * 4);
+        } else if (rxPacket.len > 12 && rxPacket.len < 16)
+        {
+            rxPacket.len = 24 + ((rxPacket.len - 12) * 8);
+        }
 
 #if TEST_MODE == FAKE_SERIAL
     // echo back
@@ -176,7 +186,21 @@ void SerialRead(void)
 {
     static int rxPtr = 0;
     static char rxBuf[RXBUF_LEN];
-
+    // manually parse pid every 400 milliseconds
+    if (millis() == 0);// % 400 == 0)
+    {
+        CANFDMessage frame;
+        frame.id = 0x7DF;
+        frame.len = 8; // it has to be 8 to enable CAN 2.0
+        frame.data[0] = 0x02;
+        frame.data[1] = 0x01;
+        frame.data[2] = 0x0C;
+        frame.data[4] = 0x00;
+        frame.data[5] = 0x00;
+        frame.data[6] = 0x00;
+        frame.data[7] = 0x00;
+        can.tryToSend(frame);
+    }
     while (Serial.available() > 0)
     {
         if (rxPtr >= RXBUF_LEN)
@@ -187,7 +211,7 @@ void SerialRead(void)
         rxBuf[rxPtr++] = c;
         if (c == TERMINATOR)
         {
-            rxParse(rxBuf, rxPtr);
+            // rxParse(rxBuf, rxPtr);
             rxPtr = 0;
         }
     }
